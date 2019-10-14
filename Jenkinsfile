@@ -1,43 +1,36 @@
-properties([
-    buildDiscarder(logRotator(numToKeepStr: '50', artifactNumToKeepStr: '5')),
-    pipelineTriggers([cron('H H/6 * * *')]),
-])
+node {
+    def app
 
-nodeWithTimeout('docker') {
-    deleteDir()
+    stage('Clone repository') {
+        /* Let's make sure we have the repository cloned to our workspace */
 
-    stage('Checkout') {
         checkout scm
     }
 
-    if (!infra.isTrusted()) {
+    stage('Build image') {
+        /* This builds the actual image; synonymous to
+         * docker build on the command line */
 
-        stage('shellcheck') {
-            // run shellcheck ignoring error SC1091
-            // Not following: /usr/local/bin/jenkins-support was not specified as input
-            sh 'make shellcheck'
+        app = docker.build("joebibe/projet-cacti")
+    }
+
+    stage('Test image') {
+        /* Ideally, we would run a test framework against our image.
+         * For this example, we're using a Volkswagen-type approach ;-) */
+
+        app.inside {
+            sh 'echo "Tests passed"'
         }
+    }
 
-        /* Outside of the trusted.ci environment, we're building and testing
-         * the Dockerfile in this repository, but not publishing to docker hub
-         */
-        stage('Build') {
-            sh 'make build'
+    stage('Push image') {
+        /* Finally, we'll push the image with two tags:
+         * First, the incremental build number from Jenkins
+         * Second, the 'latest' tag.
+         * Pushing multiple tags is cheap, as all the layers are reused. */
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-token') {
+            app.push("${env.BUILD_NUMBER}")
+            app.push("latest")
         }
-
-        stage('Prepare Test') {
-            sh "make prepare-test"
-        }
-
-        def labels = ['debian', 'slim', 'alpine', 'jdk11', 'centos']
-        def builders = [:]
-        for (x in labels) {
-            def label = x
-
-            // Create a map to pass in to the 'parallel' step so we can fire all the builds at once
-            builders[label] = {
-                stage("Test ${label}") {
-                    sh "make test-$label"
-                }
-            }
-        }
+     }    
+}
