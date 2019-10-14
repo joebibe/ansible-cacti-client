@@ -1,12 +1,25 @@
 node {
-    stage('SCM Checkout') {
-        git credentialsId: 'github-cred', url: 'https://github.com/joebibe/ansible-cacti-client.git'
+    def app
+
+    stage('Clone repository') {
+        /* Let's make sure we have the repository cloned to our workspace */
+
+        checkout scm
     }
-    stage('Mvn Package'){
-        def mvnHome = tool name: 'maven-3', type: 'maven'
-        def mvnCMD = "${mvnHome}/bin/mvn"
-        sh "${mvnCMD} clean package"
+
+    stage('Build image') {
+        /* This builds the actual image; synonymous to
+         * docker build on the command line */
+
+        app = docker.build("joebibe/projet-cacti")
+    }
+
+    stage('Test image') {
+        /* Ideally, we would run a test framework against our image.
+         * For this example, we're using a Volkswagen-type approach ;-) */
+
+        app.inside {
+            sh 'echo "Tests passed"'
+        }
     }
 }
-        
-
