@@ -1,93 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
- Copyright (c) 2012-2013 Linagora
- 
- This program/library is free software: you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation, either version 2.1 of the License, or (at your
- option) any later version.
- 
- This program/library is distributed in the hope that it will be useful, but
- WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
- for more details.
- 
- You should have received a copy of the GNU Lesser General Public License
- along with this program/library; If not, see <http://www.gnu.org/licenses />
- for the GNU Lesser General Public License version 2.1.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.ow2.petals</groupId>
-		<artifactId>petals-cli-parent</artifactId>
-		<relativePath>../../../parent/pom.xml</relativePath>
-		<version>1.0.2</version>
-	</parent>
-	<groupId>org.ow2.petals</groupId>
-	<artifactId>petals-cli-cmd-monitoring-mo-cacti</artifactId>
-	<packaging>jar</packaging>
-	<version>1.0.0</version>
-	<name>Petals ESB - Client tools - Petals CLI - Command extension - Monitoring - Monitoring Objects Implementation for Cacti</name>
-	
-	<properties>
-      <!-- failOnWarning set to false because of the dependence petals-admin-jmx. -->
-      <!-- TODO: Create a project dedicated to the packaging of Petals CLI to remove the dependence on petals-admin-jmx, and remove this property from this pom -->
-      <maven-dependency-plugin.failOnWarning>false</maven-dependency-plugin.failOnWarning>
-   </properties>
-  
-	<dependencies>
-		<dependency>
-			<groupId>org.ow2.petals</groupId>
-			<artifactId>petals-cli-cmd-monitoring-mo-api</artifactId>
-			<version>1.0.0</version>
-         <!-- Provided by petals-cli-cmd-monitoring -->
-         <scope>provided</scope>
-		</dependency>
-      <dependency>
-         <groupId>org.ow2.petals</groupId>
-         <artifactId>petals-cli-api</artifactId>
-         <version>1.1.0</version>
-         <!-- Provided by petals-cli -->
-         <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.ow2.petals</groupId>
-         <artifactId>petals-jmx-api-api</artifactId>
-         <version>1.0.0</version>
-         <!-- Provided by petals-cli -->
-         <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.ow2.petals</groupId>
-         <artifactId>petals-jmx-api-impl</artifactId>
-         <version>1.0.0</version>
-         <!-- Provided by petals-cli -->
-         <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.ow2.petals</groupId>
-         <artifactId>petals-jmx-api-mock</artifactId>
-         <version>1.0.0</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.ow2.petals</groupId>
-         <artifactId>petals-admin-jmx</artifactId>
-         <version>1.2.0</version>
-         <!-- Provided by petals-cli -->
-         <scope>provided</scope>
-      </dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-         <!-- Provided by petals-cli -->
-         <scope>provided</scope>
-		</dependency>
-	</dependencies>
-   
-	<scm>
-		<connection>scm:svn:https://svn.petalslink.org/svnroot/tags/petals-cli-cmd-monitoring-mo-cacti-1.0.0</connection>
-		<developerConnection>scm:svn:https://svn.petalslink.org/svnroot/tags/petals-cli-cmd-monitoring-mo-cacti-1.0.0</developerConnection>
-	</scm>
-</project>
+<plugin>
+ <groupId>org.apache.maven.plugins</groupId>
+ <artifactId>maven-dependency-plugin</artifactId>
+ <executions>
+ <execution>
+ <id>copy-dependencies</id>
+ <phase>prepare-package</phase>
+ <goals>
+ <goal>copy-dependencies</goal>
+ </goals>
+ <configuration>
+ <outputDirectory>${project.build.directory}/lib</outputDirectory>
+ <overWriteReleases>false</overWriteReleases>
+ <overWriteSnapshots>false</overWriteSnapshots>
+ <overWriteIfNewer>true</overWriteIfNewer>
+ </configuration>
+ </execution>
+ </executions>
+</plugin>
+<plugin>
+ <groupId>org.apache.maven.plugins</groupId>
+ <artifactId>maven-jar-plugin</artifactId>
+ <configuration>
+ <archive>
+ <manifest>
+ <addClasspath>true</addClasspath>
+ <classpathPrefix>lib/</classpathPrefix>
+ <mainClass>theMainClass</mainClass>
+ </manifest>
+ </archive>
+ </configuration>
+</plugin>
