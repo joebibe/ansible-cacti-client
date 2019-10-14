@@ -1,22 +1,43 @@
-pipeline {
-    agent any
-    stages {
-	    stage('Compile') {
-            steps {
-                    echo "Compiled Successfully!!";
+properties([
+    buildDiscarder(logRotator(numToKeepStr: '50', artifactNumToKeepStr: '5')),
+    pipelineTriggers([cron('H H/6 * * *')]),
+])
+
+nodeWithTimeout('docker') {
+    deleteDir()
+
+    stage('Checkout') {
+        checkout scm
+    }
+
+    if (!infra.isTrusted()) {
+
+        stage('shellcheck') {
+            // run shellcheck ignoring error SC1091
+            // Not following: /usr/local/bin/jenkins-support was not specified as input
+            sh 'make shellcheck'
+        }
+
+        /* Outside of the trusted.ci environment, we're building and testing
+         * the Dockerfile in this repository, but not publishing to docker hub
+         */
+        stage('Build') {
+            sh 'make build'
+        }
+
+        stage('Prepare Test') {
+            sh "make prepare-test"
+        }
+
+        def labels = ['debian', 'slim', 'alpine', 'jdk11', 'centos']
+        def builders = [:]
+        for (x in labels) {
+            def label = x
+
+            // Create a map to pass in to the 'parallel' step so we can fire all the builds at once
+            builders[label] = {
+                stage("Test ${label}") {
+                    sh "make test-$label"
+                }
             }
-        stage('JUnit') {
-            steps {
-                    echo "JUnit Passed Successfully!";
-            } 
-        stage('Quality-Gate') {
-            steps {
-                    echo "SonarQube Quality Gates passed successfully!!";
-                /*sh exit ("1");*/
-            }
-        stage('deploy') {
-            steps {
-              echo "Pass!";
-            }
-      }
-}
+        }
